@@ -8,8 +8,12 @@ import cv2
 
 import skimage
 import cv2
-from skimage.measure import compare_psnr, compare_ssim
+#from skimage.measure import compare_psnr, compare_ssim
 import pdb
+
+from skimage.metrics import peak_signal_noise_ratio
+from skimage.metrics import structural_similarity
+
 def calc_psnr(im1, im2):
 
     im1 = im1[0].view(im1.shape[2],im1.shape[3],3).detach().cpu().numpy()
@@ -18,7 +22,7 @@ def calc_psnr(im1, im2):
 
     im1_y = cv2.cvtColor(im1, cv2.COLOR_BGR2YCR_CB)[:, :, 0]
     im2_y = cv2.cvtColor(im2, cv2.COLOR_BGR2YCR_CB)[:, :, 0]
-    ans = [compare_psnr(im1_y, im2_y)]
+    ans = [peak_signal_noise_ratio(im1_y, im2_y)]
     return ans
 
 def calc_ssim(im1, im2):
@@ -27,7 +31,7 @@ def calc_ssim(im1, im2):
 
     im1_y = cv2.cvtColor(im1, cv2.COLOR_BGR2YCR_CB)[:, :, 0]
     im2_y = cv2.cvtColor(im2, cv2.COLOR_BGR2YCR_CB)[:, :, 0]
-    ans = [compare_ssim(im1_y, im2_y)]
+    ans = [structural_similarity(im1_y, im2_y)]
     return ans
 
 def to_psnr(pred_image, gt):
@@ -46,7 +50,7 @@ def to_ssim_skimage(pred_image, gt):
 
     pred_image_list_np = [pred_image_list[ind].permute(0, 2, 3, 1).data.cpu().numpy().squeeze() for ind in range(len(pred_image_list))]
     gt_list_np = [gt_list[ind].permute(0, 2, 3, 1).data.cpu().numpy().squeeze() for ind in range(len(pred_image_list))]
-    ssim_list = [measure.compare_ssim(pred_image_list_np[ind],  gt_list_np[ind], data_range=1, multichannel=True) for ind in range(len(pred_image_list))]
+    ssim_list = [structural_similarity(pred_image_list_np[ind],  gt_list_np[ind], data_range=1, multichannel=True) for ind in range(len(pred_image_list))]
 
     return ssim_list
 

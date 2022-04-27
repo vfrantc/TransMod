@@ -16,7 +16,7 @@ class TrainData(data.Dataset):
         train_list = train_data_dir + train_filename
         with open(train_list) as f:
             contents = f.readlines()
-            input_names = [i.strip() for i in contents]
+            input_names = [i.strip().replace('./', '') for i in contents]
             gt_names = [i.strip().replace('input','gt') for i in input_names]
 
         self.input_names = input_names
