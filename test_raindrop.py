@@ -1,10 +1,10 @@
-import time # python library for time, it is a standard
-import torch # torch is library for tensor and deeplearning functions
-import argparse # parsing of standard input
-import torch.nn as nn # neural networks
-from torch.utils.data import DataLoader # standard class to implement
-from val_data_functions import ValData # ValData me
-from utils import validation # some function
+import time
+import torch
+import argparse
+import torch.nn as nn
+from torch.utils.data import DataLoader
+from val_data_functions import ValData
+from utils import validation
 import os
 import numpy as np
 import random
@@ -13,9 +13,9 @@ from transweather_model import Transweather
 
 # --- Parse hyper-parameters  --- #
 parser = argparse.ArgumentParser(description='Hyper-parameters for network')
-# batch_size for validation
+# val batch size is 1 for the prediction
 parser.add_argument('-val_batch_size', help='Set the validation/test batch size', default=1, type=int)
-# something experimental, !!! what is this?
+# name of the 
 parser.add_argument('-exp_name', help='directory for saving the networks of the experiment', type=str)
 parser.add_argument('-seed', help='set random seed', default=19, type=int)
 args = parser.parse_args()

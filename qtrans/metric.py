@@ -1,19 +1,21 @@
 import torch
 import torch.nn.functional as F
 
+
 # --- Perceptual loss network  --- #
 class LossNetwork(torch.nn.Module):
     def __init__(self, vgg_model):
         super(LossNetwork, self).__init__()
-        self.vgg_layers = vgg_model     # extract the whole model
-        self.layer_name_mapping = {     # layers that we use for the perceptual loss
-            '3': "relu1_2", # layer 3
-            '8': "relu2_2", # layer 8
-            '15': "relu3_3" # layer 15
-        }
+        self.vgg_layers = vgg_model
+        self.layer_name_mapping = {
+            '3': "relu1_2",
+            '8': "relu2_2",
+            '15': "relu3_3"
+        } # Is not the same as I was using before
 
     def output_features(self, x):
-        output = {} # output features
+        output = {}
+        # name, module = next(self.vgg_layers.named_children())
         for name, module in self.vgg_layers._modules.items():
             x = module(x)
             if name in self.layer_name_mapping:
