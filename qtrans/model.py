@@ -80,7 +80,7 @@ class FeedForward(nn.Module):
         super(FeedForward, self).__init__()
 
         hidden_features = int(dim * ffn_expansion_factor)
-        self.project_in = QuaternionConv(dim, hidden_features * 2, kernel_size=1, bias=bias)
+        self.project_in = QuaternionConv(dim, hidden_features * 2, kernel_size=1, stride=1, padding=0, bias=bias)
 
         # maybe use chebyshev quaternion convolution instead?
         self.dwconv = QuaternionConv(hidden_features * 2, hidden_features * 2, kernel_size=3, stride=1, padding=1,
