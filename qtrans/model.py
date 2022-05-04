@@ -104,10 +104,10 @@ class Attention(nn.Module):
         self.num_heads = num_heads
         self.temperature = nn.Parameter(torch.ones(num_heads, 1, 1))
 
-        self.qkv = QuaternionConv(dim, dim * 3, kernel_size=1, bias=bias)
+        self.qkv = QuaternionConv(dim, dim * 3, kernel_size=1, stride=1, padding=0, bias=bias)
         # the same there is no point to do it
         self.qkv_dwconv = QuaternionConv(dim * 3, dim * 3, kernel_size=3, stride=1, padding=1, groups=dim * 3, bias=bias)
-        self.project_out = QuaternionConv(dim, dim, kernel_size=1, stride=1, padding=1, bias=bias)
+        self.project_out = QuaternionConv(dim, dim, kernel_size=1, stride=1, padding=0, bias=bias)
 
     def forward(self, x):
         b, c, h, w = x.shape
