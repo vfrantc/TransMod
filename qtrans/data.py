@@ -3,7 +3,7 @@ from PIL import Image
 from random import randrange
 from torchvision.transforms import Compose
 from torchvision.transforms import ToTensor
-from torchvision.transfroms import Normalize
+from torchvision.transforms import Normalize
 import re
 from PIL import ImageFile
 from os import path

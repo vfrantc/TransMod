@@ -8,8 +8,7 @@ from utils import validation, validation_val
 import os
 import numpy as np
 import random
-from transweather_model import Transweather
-
+from model import Restormer
 # --- Parse hyper-parameters  --- #
 parser = argparse.ArgumentParser(description='Hyper-parameters for network')
 parser.add_argument('-val_batch_size', help='Set the validation/test batch size', default=1, type=int)
