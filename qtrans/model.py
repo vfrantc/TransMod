@@ -85,7 +85,7 @@ class FeedForward(nn.Module):
         # maybe use chebyshev quaternion convolution instead?
         self.dwconv = QuaternionConv(hidden_features * 2, hidden_features * 2, kernel_size=3, stride=1, padding=1,
                                 groups=hidden_features * 2, bias=bias)
-        self.project_out = QuaternionConv(hidden_features, dim, kernel_size=1, bias=bias)
+        self.project_out = QuaternionConv(hidden_features, dim, kernel_size=1, stride=1, padding=0, bias=bias)
 
     def forward(self, x):
         x = self.project_in(x)
