@@ -9,7 +9,7 @@ import os
 import numpy as np
 import random
 # the actual model
-from transweather_model import Transweather
+from model import Restormer
 
 # --- Parse hyper-parameters  --- #
 parser = argparse.ArgumentParser(description='Hyper-parameters for network')
@@ -48,7 +48,7 @@ val_data_loader = DataLoader(ValData(val_data_dir,val_filename), batch_size=val_
 
 # --- Define the network --- #
 
-net = Transweather()
+net = Restormer()
 net = nn.DataParallel(net, device_ids=device_ids)
 
 # --- Load the network weight --- #

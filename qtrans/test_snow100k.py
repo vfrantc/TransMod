@@ -44,7 +44,7 @@ val_data_loader = DataLoader(ValData(val_data_dir,val_filename), batch_size=val_
 
 # --- Define the network --- #
 
-net = Transweather().cuda()
+net = Restormer().cuda()
 
 
 net = nn.DataParallel(net, device_ids=device_ids)

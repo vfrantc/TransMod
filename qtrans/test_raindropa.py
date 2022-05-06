@@ -8,7 +8,7 @@ from utils import validation, validation_val
 import os
 import numpy as np
 import random
-from transweather_model import Transweather
+from model import Restormer
 
 # --- Parse hyper-parameters  --- #
 parser = argparse.ArgumentParser(description='Hyper-parameters for network')
@@ -45,7 +45,7 @@ val_data_loader = DataLoader(ValData(val_data_dir,val_filename), batch_size=val_
 
 # --- Define the network --- #
 
-net = Transweather().cuda()
+net = Restormer().cuda()
 
 
 net = nn.DataParallel(net, device_ids=device_ids)
