@@ -98,7 +98,7 @@ class ValData(data.Dataset):
         val_list = val_data_dir + val_filename
         with open(val_list) as f:
             contents = f.readlines()
-            input_names = [i.strip() for i in contents]
+            input_names = [i.strip().replace('./', '') for i in contents]
             gt_names = [i.strip().replace('input','gt') for i in input_names]
 
         self.input_names = input_names
