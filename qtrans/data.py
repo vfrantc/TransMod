@@ -81,7 +81,8 @@ class TrainData(data.Dataset):
         if list(input_im.shape)[0] is not 3 or list(gt.shape)[0] is not 3:
             raise Exception('Bad image channel: {}'.format(gt_name))
 
-        return tensor2quaternion(input_im), tensor2quaternion(gt), img_id
+        #return tensor2quaternion(input_im), tensor2quaternion(gt), img_id
+        return input_im, gt, img_id
 
     def __getitem__(self, index):
         res = self.get_images(index)
@@ -130,7 +131,8 @@ class ValData(data.Dataset):
         input_im = transform_input(input_img)
         gt = transform_gt(gt_img)
 
-        return tensor2quaternion(input_im), tensor2quaternion(gt), input_name
+        #return tensor2quaternion(input_im), tensor2quaternion(gt), input_name
+        return input_im, gt, input_name
 
     def __getitem__(self, index):
         res = self.get_images(index)
