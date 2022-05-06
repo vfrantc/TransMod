@@ -99,7 +99,7 @@ class ValData(data.Dataset):
         with open(val_list) as f:
             contents = f.readlines()
             input_names = [i.strip().replace('./', '') for i in contents]
-            gt_names = [i.strip().replace('input','gt') for i in input_names]
+            gt_names = [i.strip().replace('input','gt').replace('_clean.png', '_rain.png') for i in input_names]
 
         self.input_names = input_names
         self.gt_names = gt_names
