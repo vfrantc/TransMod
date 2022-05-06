@@ -30,7 +30,7 @@ class TrainData(data.Dataset):
         with open(train_list) as f:                     # open(train_list)
             contents = f.readlines()                    # contents = f.readlines()
             input_names = [i.strip().replace('./', '') for i in contents] # input_names
-            gt_names = [i.strip().replace('input', 'gt') for i in input_names] #
+            gt_names = [i.strip().replace('input', 'gt').replace('_clean.png', '_rain.png') for i in input_names] #
 
         self.input_names = input_names  # input names
         self.gt_names = gt_names        # gt names
