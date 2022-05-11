@@ -1,5 +1,9 @@
-# Add attention from the restormer
+#!pip install torch-summary
+#!pip install thop
+#!pip install einops
+
 import math
+from math import sqrt
 import torch
 import torch.nn as nn
 import torch.nn.functional
@@ -7,7 +11,8 @@ import torch.nn.functional as F
 from functools import partial
 from itertools import repeat
 import collections.abc
-from math import sqrt
+from einops import rearrange
+
 
 class ConvBlock(torch.nn.Module):
     # basic convolutional layer with normalization, does not use the group thing
@@ -24,20 +29,20 @@ class ConvBlock(torch.nn.Module):
         super(ConvBlock, self).__init__()
         self.conv = torch.nn.Conv2d(input_size, output_size, kernel_size, stride, padding, bias=bias)
         self.norm = norm
-        if self.norm =='batch':
+        if self.norm == 'batch':
             self.bn = torch.nn.BatchNorm2d(output_size)
         elif self.norm == 'instance':
             self.bn = torch.nn.InstanceNorm2d(output_size)
 
         self.activation = activation
-        if self.activation == 'relu': # relu activation function
+        if self.activation == 'relu':  # relu activation function
             self.act = torch.nn.ReLU(True)
-        elif self.activation == 'prelu': # prelu and all the other stuff
+        elif self.activation == 'prelu':  # prelu and all the other stuff
             self.act = torch.nn.PReLU()
         elif self.activation == 'lrelu':
-            self.act = torch.nn.LeakyReLU(0.2, True) # torch.nn.LeakyReLU(0.2, True)
+            self.act = torch.nn.LeakyReLU(0.2, True)  # torch.nn.LeakyReLU(0.2, True)
         elif self.activation == 'tanh':
-            self.act = torch.nn.Tanh() # torch.nn.Tanh
+            self.act = torch.nn.Tanh()  # torch.nn.Tanh
         elif self.activation == 'sigmoid':
             self.act = torch.nn.Sigmoid()
 
@@ -53,9 +58,11 @@ class ConvBlock(torch.nn.Module):
         else:
             return out
 
+
 class DeconvBlock(torch.nn.Module):
     # Is exactly symmetric to the convolutional variant
-    def __init__(self, input_size, output_size, kernel_size=4, stride=2, padding=1, bias=True, activation='prelu', norm=None):
+    def __init__(self, input_size, output_size, kernel_size=4, stride=2, padding=1, bias=True, activation='prelu',
+                 norm=None):
         super(DeconvBlock, self).__init__()
         # but uses transposed convolution
         self.deconv = torch.nn.ConvTranspose2d(input_size, output_size, kernel_size, stride, padding, bias=bias)
@@ -102,49 +109,50 @@ class ConvLayer(nn.Module):
 
 class UpsampleConvLayer(torch.nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride):
-      # To upsample we just use ConvTranspose
-      super(UpsampleConvLayer, self).__init__()
-      # conv2d = nn.ConvTranspose2d(in_channels, out_channels, kernel_size, stride=stride, padding=1)
-      self.conv2d = nn.ConvTranspose2d(in_channels, out_channels, kernel_size, stride=stride, padding=1)
+        super(UpsampleConvLayer, self).__init__()
+        self.conv2d = nn.ConvTranspose2d(in_channels, out_channels, kernel_size, stride=stride, padding=1)
 
     def forward(self, x):
         out = self.conv2d(x)
         return out
 
+
 class ResidualBlock(torch.nn.Module):
+    # Very interesting implementation, why 0.1?
     # This is a residual block
     def __init__(self, channels):
         super(ResidualBlock, self).__init__()
         # ConvLayer does not have activation, this is a weird construction
         # conv1
-        self.conv1 = ConvLayer(channels, channels, kernel_size=3, stride=1, padding=1) # first layer
+        self.conv1 = ConvLayer(channels, channels, kernel_size=3, stride=1, padding=1)  # first layer
         # conv2
-        self.conv2 = ConvLayer(channels, channels, kernel_size=3, stride=1, padding=1) # second layer
+        self.conv2 = ConvLayer(channels, channels, kernel_size=3, stride=1, padding=1)  # second layer
         # relu
-        self.relu = nn.ReLU() # ReLU: Rectified linear unit
+        self.relu = nn.ReLU()  # ReLU: Rectified linear unit
 
     def forward(self, x):
-        residual = x # This tensor is used to form the residual
-        out = self.relu(self.conv1(x)) # Apply convolution, then relu, then
-        out = self.conv2(out) * 0.1 # apply convolution second time, it is not clear why it is scaled like this
+        residual = x  # This tensor is used to form the residual
+        out = self.relu(self.conv1(x))  # Apply convolution, then relu, then
+        out = self.conv2(out) * 0.1  # apply convolution second time, it is not clear why it is scaled like this
         # why this magic numbers???
-        out = torch.add(out, residual) # final output
+        out = torch.add(out, residual)  # final output
         return out
 
-def init_linear(linear): # what?? it takes some tensor, or some layer and modified the weight inside???
-    init.xavier_normal(linear.weight) # use xavier_normal
-    linear.bias.data.zero_() # zero out the bias inside of this thing
+
+def init_linear(linear):  # what?? it takes some tensor, or some layer and modified the weight inside???
+    init.xavier_normal(linear.weight)  # use xavier_normal
+    linear.bias.data.zero_()  # zero out the bias inside of this thing
 
 
 def init_conv(conv, glu=True):
-    init.kaiming_normal(conv.weight) # special initialization for
+    init.kaiming_normal(conv.weight)  # special initialization for
     if conv.bias is not None:
         conv.bias.data.zero_()
 
 
 class EqualLR:
     def __init__(self, name):
-        self.name = name    # input of what??? It seeams that it performs some kind of initialization
+        self.name = name  # input of what??? It seeams that it performs some kind of initialization
 
     def compute_weight(self, module):
         weight = getattr(module, self.name + '_orig')
@@ -171,6 +179,7 @@ class EqualLR:
 def equal_lr(module, name='weight'):
     EqualLR.apply(module, name)
     return module
+
 
 # From PyTorch internals
 def _ntuple(n):
@@ -414,7 +423,7 @@ class EncoderTransformer(nn.Module):
         embed_dims = [64, 128, 320, 512]
         # stage 1
         x1, H1, W1 = self.patch_embed1(x)
-        #x2, H2, W2 = self.mini_patch_embed1(x1.permute(0, 2, 1).reshape(B, embed_dims[0], H1, W1))
+        # x2, H2, W2 = self.mini_patch_embed1(x1.permute(0, 2, 1).reshape(B, embed_dims[0], H1, W1))
 
         for i, blk in enumerate(self.block1):
             x1 = blk(x1, H1, W1)
@@ -430,7 +439,7 @@ class EncoderTransformer(nn.Module):
 
         # stage 2
         x1, H1, W1 = self.patch_embed2(x1)
-        x1 = x1.permute(0, 2, 1).reshape(B, embed_dims[1], H1, W1) # + x2
+        x1 = x1.permute(0, 2, 1).reshape(B, embed_dims[1], H1, W1)  # + x2
         # x2, H2, W2 = self.mini_patch_embed2(x1)
 
         x1 = x1.view(x1.shape[0], x1.shape[1], -1).permute(0, 2, 1)
@@ -448,7 +457,7 @@ class EncoderTransformer(nn.Module):
 
         # stage 3
         x1, H1, W1 = self.patch_embed3(x1)
-        x1 = x1.permute(0, 2, 1).reshape(B, embed_dims[2], H1, W1) #+ x2
+        x1 = x1.permute(0, 2, 1).reshape(B, embed_dims[2], H1, W1)  # + x2
         # x2, H2, W2 = self.mini_patch_embed3(x1)
 
         x1 = x1.view(x1.shape[0], x1.shape[1], -1).permute(0, 2, 1)
@@ -466,7 +475,7 @@ class EncoderTransformer(nn.Module):
 
         # stage 4
         x1, H1, W1 = self.patch_embed4(x1)
-        x1 = x1.permute(0, 2, 1).reshape(B, embed_dims[3], H1, W1) # + x2
+        x1 = x1.permute(0, 2, 1).reshape(B, embed_dims[3], H1, W1)  # + x2
 
         x1 = x1.view(x1.shape[0], x1.shape[1], -1).permute(0, 2, 1)
 
@@ -551,6 +560,8 @@ def resize(input,
 
 
 ############################################################
+# I should replace this one
+
 
 class Mlp(nn.Module):
     def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
@@ -764,6 +775,68 @@ class Block_dec(nn.Module):
         return x
 
 
+##########################################################################
+## Gated-Dconv Feed-Forward Network (GDFN)
+class FeedForward(nn.Module):
+    def __init__(self, dim, ffn_expansion_factor, bias):
+        super(FeedForward, self).__init__()
+        hidden_features = int(dim * ffn_expansion_factor)
+        self.project_in = nn.Conv2d(dim, hidden_features * 2, kernel_size=1, bias=bias)
+        self.dwconv = nn.Conv2d(hidden_features * 2,
+                                hidden_features * 2,
+                                kernel_size=3,
+                                stride=1,
+                                padding=1,
+                                groups=hidden_features * 2,
+                                bias=bias)
+        self.project_out = nn.Conv2d(hidden_features, dim, kernel_size=1, bias=bias)
+
+    def forward(self, x, H, W):
+        print('before: ', x.size())
+        x = self.project_in(x)
+        print('after: ', x.size())
+        x1, x2 = self.dwconv(x).chunk(2, dim=1)
+        x = F.gelu(x1) * x2
+        x = self.project_out(x)
+        return x
+
+
+##########################################################################
+## Multi-DConv Head Transposed Self-Attention (MDTA)
+class RAttention(nn.Module):
+    def __init__(self, dim, num_heads, bias):
+        super(RAttention, self).__init__()
+        self.num_heads = num_heads
+        self.temperature = nn.Parameter(torch.ones(num_heads, 1, 1))
+
+        self.qkv = nn.Conv2d(dim, dim * 3, kernel_size=1, bias=bias)
+        self.qkv_dwconv = nn.Conv2d(dim * 3, dim * 3, kernel_size=3, stride=1, padding=1, groups=dim * 3, bias=bias)
+        self.project_out = nn.Conv2d(dim, dim, kernel_size=1, bias=bias)
+
+    def forward(self, x):
+        b, c, h, w = x.shape
+
+        qkv = self.qkv_dwconv(self.qkv(x))
+        q, k, v = qkv.chunk(3, dim=1)
+
+        q = rearrange(q, 'b (head c) h w -> b head c (h w)', head=self.num_heads)
+        k = rearrange(k, 'b (head c) h w -> b head c (h w)', head=self.num_heads)
+        v = rearrange(v, 'b (head c) h w -> b head c (h w)', head=self.num_heads)
+
+        q = torch.nn.functional.normalize(q, dim=-1)
+        k = torch.nn.functional.normalize(k, dim=-1)
+
+        attn = (q @ k.transpose(-2, -1)) * self.temperature
+        attn = attn.softmax(dim=-1)
+
+        out = (attn @ v)
+
+        out = rearrange(out, 'b head c (h w) -> b (head c) h w', head=self.num_heads, h=h, w=w)
+
+        out = self.project_out(out)
+        return out
+
+
 class Block(nn.Module):
 
     def __init__(self, dim, num_heads, mlp_ratio=4., qkv_bias=False, qk_scale=None, drop=0., attn_drop=0.,
@@ -779,6 +852,7 @@ class Block(nn.Module):
         self.norm2 = norm_layer(dim)
         mlp_hidden_dim = int(dim * mlp_ratio)
         self.mlp = Mlp(in_features=dim, hidden_features=mlp_hidden_dim, act_layer=act_layer, drop=drop)
+        #self.mlp = FeedForward(dim, mlp_ratio, bias=True)
 
         self.apply(self._init_weights)
 
@@ -1098,6 +1172,7 @@ class Transweather(nn.Module):
             self.load(path)
 
     def forward(self, x):
+        print(x)
         x1 = self.Tenc(x)
 
         x2 = self.Tdec(x1)
@@ -1120,4 +1195,10 @@ class Transweather(nn.Module):
         torch.cuda.empty_cache()
 
 
+if __name__ == '__main__':
+    net = Transweather()
+    import thop
+    import torchsummary
 
+    dummy_images = torch.rand(1, 3, 256, 256)
+    macs, params = thop.profile(net, inputs=(dummy_images,))
