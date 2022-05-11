@@ -15,8 +15,7 @@ import os
 import numpy as np
 import random
 
-# the actual model with their modules
-from transweather_model import Transweather
+
 
 # what agg means, does it save the resulting plot somewhere???
 plt.switch_backend('agg')
@@ -33,6 +32,7 @@ parser.add_argument('-val_batch_size', help='Set the validation/test batch size'
 parser.add_argument('-exp_name', help='directory for saving the networks of the experiment', type=str)
 parser.add_argument('-seed', help='set random seed', default=19, type=int)
 parser.add_argument('-num_epochs', help='number of epochs', default=200, type=int)
+parser.add_argument('-my_model', help='use original or my model', type=bool, default=False)
 
 args = parser.parse_args()
 
@@ -44,6 +44,11 @@ lambda_loss = args.lambda_loss
 val_batch_size = args.val_batch_size
 exp_name = args.exp_name
 num_epochs = args.num_epochs
+
+if args.my_model:
+    from transweather_model2 import Transweather
+else:
+    from transweather_model import Transweather
 
 
 #set seed
