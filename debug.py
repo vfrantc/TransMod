@@ -12,7 +12,7 @@ from functools import partial
 from itertools import repeat
 import collections.abc
 from einops import rearrange
-
+from qcnn import Quater
 
 class ConvBlock(torch.nn.Module):
     # basic convolutional layer with normalization, does not use the group thing
@@ -133,8 +133,7 @@ class ResidualBlock(torch.nn.Module):
     def forward(self, x):
         residual = x  # This tensor is used to form the residual
         out = self.relu(self.conv1(x))  # Apply convolution, then relu, then
-        out = self.conv2(out) * 0.1  # apply convolution second time, it is not clear why it is scaled like this
-        # why this magic numbers???
+        out = self.conv2(out) * 0.1
         out = torch.add(out, residual)  # final output
         return out
 
@@ -152,7 +151,7 @@ def init_conv(conv, glu=True):
 
 class EqualLR:
     def __init__(self, name):
-        self.name = name  # input of what??? It seeams that it performs some kind of initialization
+        self.name = name
 
     def compute_weight(self, module):
         weight = getattr(module, self.name + '_orig')

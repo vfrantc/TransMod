@@ -8,6 +8,7 @@ from functools import partial
 from itertools import repeat
 import collections.abc
 from math import sqrt
+from qcnn import QuaternionLinear
 
 class ConvBlock(torch.nn.Module):
     # basic convolutional layer with normalization, does not use the group thing
@@ -557,10 +558,10 @@ class Mlp(nn.Module):
         super().__init__()
         out_features = out_features or in_features
         hidden_features = hidden_features or in_features
-        self.fc1 = nn.Linear(in_features, hidden_features)
+        self.fc1 = QuaternionLinear(in_features, hidden_features)
         self.dwconv = DWConv(hidden_features)
         self.act = act_layer()
-        self.fc2 = nn.Linear(hidden_features, out_features)
+        self.fc2 = QuaternionLinear(hidden_features, out_features)
         self.drop = nn.Dropout(drop)
 
         self.apply(self._init_weights)
