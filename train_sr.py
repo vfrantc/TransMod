@@ -132,11 +132,11 @@ net.eval()
 ## but note that validating while training significantly increases the test time
 
 # old_val_psnr, old_val_ssim = validation(net, val_data_loader, device, exp_name)
-old_val_psnr1, old_val_ssim1 = validation(net, val_data_loader1, device, exp_name)
+#old_val_psnr1, old_val_ssim1 = validation(net, val_data_loader1, device, exp_name)
 # old_val_psnr2, old_val_ssim2 = validation(net, val_data_loader2, device, exp_name)
 
 # print('Rain 800 old_val_psnr: {0:.2f}, old_val_ssim: {1:.4f}'.format(old_val_psnr, old_val_ssim))
-print('Rain Drop old_val_psnr: {0:.2f}, old_val_ssim: {1:.4f}'.format(old_val_psnr1, old_val_ssim1))
+#print('Rain Drop old_val_psnr: {0:.2f}, old_val_ssim: {1:.4f}'.format(old_val_psnr1, old_val_ssim1))
 # print('Test1 old_val_psnr: {0:.2f}, old_val_ssim: {1:.4f}'.format(old_val_psnr2, old_val_ssim2))
 
 net.train()
