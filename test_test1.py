@@ -15,7 +15,19 @@ parser = argparse.ArgumentParser(description='Hyper-parameters for network')
 parser.add_argument('-val_batch_size', help='Set the validation/test batch size', default=1, type=int)
 parser.add_argument('-exp_name', help='directory for saving the networks of the experiment', type=str)
 parser.add_argument('-seed', help='set random seed', default=19, type=int)
+parser.add_argument('-my_model', help='use original or my model', type=int, default=0)
 args = parser.parse_args()
+
+if args.my_model == 0:
+    from transweather_model import Transweather
+elif args.my_model == 1:
+    from transweather_model2 import Transweather
+elif args.my_model == 2:
+    from transweather_model3 import Transweather
+elif args.my_model == 3:
+    from transweather_model4 import Transweather
+elif args.my_model == 4:
+    from transweather_model5 import Transweather
 
 val_batch_size = args.val_batch_size
 exp_name = args.exp_name
