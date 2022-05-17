@@ -97,7 +97,7 @@ class QuaternionTransposeConv(nn.Module):
                + ', kernel_size=' + str(self.kernel_size) \
                + ', stride=' + str(self.stride) \
                + ', padding=' + str(self.padding) \
-               + ', dilation=' + str(self.dilation) \
+               + ', dilatation=' + str(self.dilatation) \
                + ', init_criterion=' + str(self.init_criterion) \
                + ', weight_init=' + str(self.weight_init) \
                + ', seed=' + str(self.seed) \

@@ -941,4 +941,17 @@ class Transweather(nn.Module):
         torch.cuda.empty_cache()
 
 
+if __name__ == "__main__":
+    import torchsummary
+    net = Transweather()
+    print(net)
+    torchsummary.summary(net, verbose=2)
 
+    import thop
+    dummy_images = torch.rand(1, 3, 256, 256)
+    macs, params = thop.profile(net, inputs=(dummy_images,))
+    print('macs:', macs)
+    print('params: ', params)
+
+    #macs: 203245312.0
+    #params:  1185003.0

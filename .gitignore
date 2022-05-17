@@ -1,3 +1,6 @@
 .idea/
 data/
 .DS_Store
+.gitignore.swp
+__pycache__/
+qcnn/__pycache__/

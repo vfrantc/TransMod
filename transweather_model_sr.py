@@ -1,4 +1,3 @@
-# Add attention from the restormer
 import math
 import torch
 import torch.nn as nn
@@ -12,6 +11,7 @@ from qcnn import QuaternionTransposeConv
 from qcnn import QuaternionConv
 from qcnn import QuaternionLinear
 from harmonic import Cheb2d
+
 
 class ConvBlock(torch.nn.Module):
     # basic convolutional layer with normalization, does not use the group thing
@@ -280,7 +280,7 @@ class DropPath(nn.Module):
 
 
 class EncoderTransformer(nn.Module):
-    def __init__(self, img_size=224, patch_size=16, in_chans=3, num_classes=1000, embed_dims=[64, 128, 256, 512],
+    def __init__(self, img_size=224, patch_size=16, in_chans=4, num_classes=1000, embed_dims=[64, 128, 256, 512],
                  num_heads=[1, 2, 4, 8], mlp_ratios=[4, 4, 4, 4], qkv_bias=False, qk_scale=None, drop_rate=0.,
                  attn_drop_rate=0., drop_path_rate=0., norm_layer=nn.LayerNorm,
                  depths=[3, 4, 6, 3], sr_ratios=[8, 4, 2, 1]):
@@ -493,7 +493,7 @@ class OverlapPatchEmbed(nn.Module):
     """ Image to Patch Embedding
     """
 
-    def __init__(self, img_size=224, patch_size=7, stride=4, in_chans=3, embed_dim=768):
+    def __init__(self, img_size=224, patch_size=7, stride=4, in_chans=4, embed_dim=768):
         super().__init__()
         img_size = to_2tuple(img_size)
         patch_size = to_2tuple(patch_size)
@@ -976,8 +976,28 @@ class convprojection(nn.Module):
 
         res8x = self.dense_4(res16x) + x1[2]
         res8x = self.convd8x(res8x)
+        if x1[1].shape[3] != res8x.shape[3] and x1[1].shape[2] != res8x.shape[2]:
+            p2d = (0, -1, 0, -1)
+            res8x = F.pad(res8x, p2d, "constant", 0)
+        elif x1[1].shape[3] != res8x.shape[3] and x1[1].shape[2] == res8x.shape[2]:
+            p2d = (0, -1, 0, 0)
+            res8x = F.pad(res8x, p2d, "constant", 0)
+        elif x1[1].shape[3] == res8x.shape[3] and x1[1].shape[2] != res8x.shape[2]:
+            p2d = (0, 0, 0, -1)
+            res8x = F.pad(res8x, p2d, "constant", 0)
+
         res4x = self.dense_3(res8x) + x1[1]
         res4x = self.convd4x(res4x)
+        if x1[0].shape[3] != res4x.shape[3] and x1[0].shape[2] != res4x.shape[2]:
+            p2d = (0, -1, 0, -1)
+            res4x = F.pad(res4x, p2d, "constant", 0)
+        elif x1[0].shape[3] != res4x.shape[3] and x1[0].shape[2] == res4x.shape[2]:
+            p2d = (0, -1, 0, 0)
+            res4x = F.pad(res4x, p2d, "constant", 0)
+        elif x1[0].shape[3] == res4x.shape[3] and x1[0].shape[2] != res4x.shape[2]:
+            p2d = (0, 0, 0, -1)
+            res4x = F.pad(res4x, p2d, "constant", 0)
+
         res2x = self.dense_2(res4x) + x1[0]
         res2x = self.convd2x(res2x)
         x = res2x
@@ -989,109 +1009,11 @@ class convprojection(nn.Module):
         return x
 
 
-class convprojection_base(nn.Module):
-    def __init__(self, path=None, **kwargs):
-        super(convprojection_base, self).__init__()
-
-        # self.convd32x = UpsampleConvLayer(512, 512, kernel_size=4, stride=2)
-        self.convd16x = UpsampleConvLayer(512, 320, kernel_size=4, stride=2)
-        self.dense_4 = nn.Sequential(ResidualBlock(320))
-        self.convd8x = UpsampleConvLayer(320, 128, kernel_size=4, stride=2)
-        self.dense_3 = nn.Sequential(ResidualBlock(128))
-        self.convd4x = UpsampleConvLayer(128, 64, kernel_size=4, stride=2)
-        self.dense_2 = nn.Sequential(ResidualBlock(64))
-        self.convd2x = UpsampleConvLayer(64, 16, kernel_size=4, stride=2)
-        self.dense_1 = nn.Sequential(ResidualBlock(16))
-        self.convd1x = UpsampleConvLayer(16, 8, kernel_size=4, stride=2)
-        self.conv_output = ConvLayer(8, 3, kernel_size=3, stride=1, padding=1)
-
-        self.active = nn.Tanh()
-
-    def forward(self, x1):
-
-        #         if x1[3].shape[3] != res32x.shape[3] and x1[3].shape[2] != res32x.shape[2]:
-        #             p2d = (0,-1,0,-1)
-        #             res32x = F.pad(res32x,p2d,"constant",0)
-
-        #         elif x1[3].shape[3] != res32x.shape[3] and x1[3].shape[2] == res32x.shape[2]:
-        #             p2d = (0,-1,0,0)
-        #             res32x = F.pad(res32x,p2d,"constant",0)
-        #         elif x1[3].shape[3] == res32x.shape[3] and x1[3].shape[2] != res32x.shape[2]:
-        #             p2d = (0,0,0,-1)
-        #             res32x = F.pad(res32x,p2d,"constant",0)
-
-        #         res16x = res32x + x1[3]
-        res16x = self.convd16x(x1[3])
-
-        if x1[2].shape[3] != res16x.shape[3] and x1[2].shape[2] != res16x.shape[2]:
-            p2d = (0, -1, 0, -1)
-            res16x = F.pad(res16x, p2d, "constant", 0)
-        elif x1[2].shape[3] != res16x.shape[3] and x1[2].shape[2] == res16x.shape[2]:
-            p2d = (0, -1, 0, 0)
-            res16x = F.pad(res16x, p2d, "constant", 0)
-        elif x1[2].shape[3] == res16x.shape[3] and x1[2].shape[2] != res16x.shape[2]:
-            p2d = (0, 0, 0, -1)
-            res16x = F.pad(res16x, p2d, "constant", 0)
-
-        res8x = self.dense_4(res16x) + x1[2]
-        res8x = self.convd8x(res8x)
-        res4x = self.dense_3(res8x) + x1[1]
-        res4x = self.convd4x(res4x)
-        res2x = self.dense_2(res4x) + x1[0]
-        res2x = self.convd2x(res2x)
-        x = res2x
-        x = self.dense_1(x)
-        x = self.convd1x(x)
-
-        return x
-
-
-## The following is the network which can be fine-tuned for specific datasets
-
-class Transweather_base(nn.Module):
-
-    def __init__(self, path=None, **kwargs):
-        super(Transweather_base, self).__init__()
-
-        self.Tenc = Tenc()
-
-        self.convproj = convprojection_base()
-
-        self.clean = ConvLayer(8, 3, kernel_size=3, stride=1, padding=1)
-
-        self.active = nn.Tanh()
-
-        if path is not None:
-            self.load(path)
-
-    def forward(self, x):
-        x1 = self.Tenc(x)
-
-        x = self.convproj(x1)
-
-        clean = self.active(self.clean(x))
-
-        return clean
-
-    def load(self, path):
-        """
-        Load checkpoint.
-        """
-        checkpoint = torch.load(path, map_location=lambda storage, loc: storage)
-        model_state_dict_keys = self.state_dict().keys()
-        checkpoint_state_dict_noprefix = strip_prefix_if_present(checkpoint['state_dict'], "module.")
-        self.load_state_dict(checkpoint_state_dict_noprefix, strict=False)
-        del checkpoint
-        torch.cuda.empty_cache()
-
-
-## The following is original network found in paper which solves all-weather removal problems
-## using a single model
-
 class Transweather(nn.Module):
 
     def __init__(self, path=None, **kwargs):
         super(Transweather, self).__init__()
+        self.toquat = nn.Conv2d(3, 4, 1, stride=1, padding=1)
 
         self.Tenc = Tenc()
 
@@ -1099,7 +1021,7 @@ class Transweather(nn.Module):
 
         self.convtail = convprojection()
 
-        self.clean = ConvLayer(8, 3, kernel_size=3, stride=1, padding=1)
+        self.clean = nn.Conv2d(8, 3, kernel_size=3, stride=1, padding=1)
 
         self.active = nn.Tanh()
 
@@ -1107,10 +1029,9 @@ class Transweather(nn.Module):
             self.load(path)
 
     def forward(self, x):
+        x = self.toquat(x)
         x1 = self.Tenc(x)
-
         x2 = self.Tdec(x1)
-
         x = self.convtail(x1, x2)
 
         clean = self.active(self.clean(x))
@@ -1129,4 +1050,18 @@ class Transweather(nn.Module):
         torch.cuda.empty_cache()
 
 
+if __name__ == '__main__':
+    import torchsummary
+
+    net = Transweather()
+    print(net)
+    torchsummary.summary(net, verbose=2)
+
+    #My model:
+    # macs: 203,245,312.0
+    # params:  1,185,003.0
+
+    #Their model:
+    #macs: 6,121,033,728.0
+    #params: 37649555.0
 
