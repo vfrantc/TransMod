@@ -132,11 +132,11 @@ net.eval()
 ## but note that validating while training significantly increases the test time
 
 # old_val_psnr, old_val_ssim = validation(net, val_data_loader, device, exp_name)
-#old_val_psnr1, old_val_ssim1 = validation(net, val_data_loader1, device, exp_name)
+old_val_psnr1, old_val_ssim1 = validation(net, val_data_loader1, device, exp_name)
 # old_val_psnr2, old_val_ssim2 = validation(net, val_data_loader2, device, exp_name)
 
 # print('Rain 800 old_val_psnr: {0:.2f}, old_val_ssim: {1:.4f}'.format(old_val_psnr, old_val_ssim))
-#print('Rain Drop old_val_psnr: {0:.2f}, old_val_ssim: {1:.4f}'.format(old_val_psnr1, old_val_ssim1))
+print('Rain Drop old_val_psnr: {0:.2f}, old_val_ssim: {1:.4f}'.format(old_val_psnr1, old_val_ssim1))
 # print('Test1 old_val_psnr: {0:.2f}, old_val_ssim: {1:.4f}'.format(old_val_psnr2, old_val_ssim2))
 
 net.train()
@@ -183,7 +183,7 @@ for epoch in range(epoch_start,num_epochs):
     net.eval()
 
     # val_psnr, val_ssim = validation(net, val_data_loader, device, exp_name)
-    ### val_psnr1, val_ssim1 = validation(net, val_data_loader1, device, exp_name)
+    val_psnr1, val_ssim1 = validation(net, val_data_loader1, device, exp_name)
     # val_psnr2, val_ssim2 = validation(net, val_data_loader2, device, exp_name)
 
 
@@ -191,16 +191,14 @@ for epoch in range(epoch_start,num_epochs):
     # print("Rain 800")
     # print_log(epoch+1, num_epochs, one_epoch_time, train_psnr, val_psnr, val_ssim, exp_name)
     print("Rain Drop")
-    ### print_log(epoch+1, num_epochs, one_epoch_time, train_psnr, val_psnr1, val_ssim1, exp_name)
+    print_log(epoch+1, num_epochs, one_epoch_time, train_psnr, val_psnr1, val_ssim1, exp_name)
     # print("Test1")
     # print_log(epoch+1, num_epochs, one_epoch_time, train_psnr, val_psnr2, val_ssim2, exp_name)
 
     # --- update the network weight --- #
-    '''
     if val_psnr1 >= old_val_psnr1:
         torch.save(net.state_dict(), './{}/best'.format(exp_name))
         print('model saved')
         old_val_psnr1 = val_psnr1
-    '''
 
         # Note that we find the best model based on validating with raindrop data.
