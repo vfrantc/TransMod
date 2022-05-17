@@ -1013,7 +1013,7 @@ class Transweather(nn.Module):
 
     def __init__(self, path=None, **kwargs):
         super(Transweather, self).__init__()
-        self.toquat = nn.Conv2d(3, 4, 1, stride=1, padding=1)
+        self.toquat = nn.Conv2d(3, 4, 1, stride=1, padding=0)
 
         self.Tenc = Tenc()
 
