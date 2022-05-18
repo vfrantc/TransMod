@@ -17,19 +17,6 @@ parser.add_argument('-exp_name', help='directory for saving the networks of the 
 parser.add_argument('-seed', help='set random seed', default=19, type=int)
 args = parser.parse_args()
 
-if args.my_model == 0:
-    from transweather_model import Transweather
-elif args.my_model == 1:
-    from transweather_model2 import Transweather
-elif args.my_model == 2:
-    from transweather_model3 import Transweather
-elif args.my_model == 3:
-    from transweather_model4 import Transweather
-elif args.my_model == 4:
-    from transweather_model5 import Transweather
-
-
-
 
 val_batch_size = args.val_batch_size
 exp_name = args.exp_name
