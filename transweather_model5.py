@@ -1057,7 +1057,7 @@ class Transweather(nn.Module):
 
     def forward(self, x):
         b, c, h, w = x.size()
-        real = torch.zeros((b, 1, h, w))
+        real = torch.zeros((b, 1, h, w)).cuda()
         x = torch.cat([real, x], dim=1)
 
         x1 = self.Tenc(x)
