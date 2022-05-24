@@ -45,6 +45,7 @@ val_batch_size = args.val_batch_size
 exp_name = args.exp_name
 num_epochs = args.num_epochs
 
+
 if args.my_model == 0:
     from transweather_model import Transweather
 elif args.my_model == 1:
@@ -55,6 +56,8 @@ elif args.my_model == 3:
     from transweather_model4 import Transweather
 elif args.my_model == 4:
     from transweather_model5 import Transweather
+elif args.my_model == 6:
+    from transweather_model6 import Transweather
 
 
 #set seed
