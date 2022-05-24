@@ -56,7 +56,7 @@ elif args.my_model == 3:
     from transweather_model4 import Transweather
 elif args.my_model == 4:
     from transweather_model5 import Transweather
-elif args.my_model == 6:
+elif args.my_model == 5:
     from transweather_model6 import Transweather
 
 
