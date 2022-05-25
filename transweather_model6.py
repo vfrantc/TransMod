@@ -1021,6 +1021,7 @@ class Transweather(nn.Module):
         x = self.convtail(x1, x2)
         clean = self.active(self.clean(x))
         clean = K.filters.unsharp_mask(clean, (3, 3), (1.5, 1.5))
+        clean = torch.clip(clean, 0, 255)
         return clean
 
     def load(self, path):

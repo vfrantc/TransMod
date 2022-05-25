@@ -103,52 +103,52 @@ class Harm2d(nn.Module):
         else:
             x = F.conv2d(x, self.dct, stride=self.stride, padding=self.padding, dilation=self.dilation,
                          groups=x.size(1))
-            x = self.bn(x)
+            # x = self.bn(x)
             x = F.conv2d(x, self.weight, bias=self.bias, padding=0, groups=self.groups)
             return x
 
 
-class Cheb2d(nn.Module):
-
-    def __init__(self, ni, no, kernel_size, stride=1, padding=0, bias=True, dilation=1, use_bn=False, level=None,
-                 DC=True, groups=1):
-        super(Cheb2d, self).__init__()
-        self.kernel_size = kernel_size
-        self.stride = stride
-        self.padding = padding
-        self.dilation = dilation
-        self.groups = groups
-        self.cheb = nn.Parameter(chebychev_filters(k=kernel_size,
-                                                   groups=ni if use_bn else 1,
-                                                   expand_dim=1 if use_bn else 0,
-                                                   level=level,
-                                                   DC=DC),
-                                 requires_grad=False)
-
-        nf = self.cheb.shape[0] // ni if use_bn else self.cheb.shape[1]
-        if use_bn:
-            self.bn = nn.BatchNorm2d(ni * nf, affine=False)
-            self.weight = nn.Parameter(
-                nn.init.kaiming_normal_(torch.Tensor(no, ni // self.groups * nf, 1, 1), mode='fan_out',
-                                        nonlinearity='relu'))
-        else:
-            self.weight = nn.Parameter(
-                nn.init.kaiming_normal_(torch.Tensor(no, ni // self.groups, nf, 1, 1), mode='fan_out',
-                                        nonlinearity='relu'))
-        self.bias = nn.Parameter(nn.init.zeros_(torch.Tensor(no))) if bias else None
-
-    def forward(self, x):
-        if not hasattr(self, 'bn'):
-            filt = torch.sum(self.weight * self.cheb, dim=2)
-            x = F.conv2d(x, filt, bias=self.bias, stride=self.stride, padding=self.padding, dilation=self.dilation,
-                         groups=self.groups)
-            return x
-        else:
-            x = F.conv2d(x, self.cheb, stride=self.stride, padding=self.padding, dilation=self.dilation,
-                         groups=x.size(1))
-            x = self.bn(x)
-            x = F.conv2d(x, self.weight, bias=self.bias, padding=0, groups=self.groups)
-            return x
+# class Cheb2d(nn.Module):
+#
+#     def __init__(self, ni, no, kernel_size, stride=1, padding=0, bias=True, dilation=1, use_bn=False, level=None,
+#                  DC=True, groups=1):
+#         super(Cheb2d, self).__init__()
+#         self.kernel_size = kernel_size
+#         self.stride = stride
+#         self.padding = padding
+#         self.dilation = dilation
+#         self.groups = groups
+#         self.cheb = nn.Parameter(chebychev_filters(k=kernel_size,
+#                                                    groups=ni if use_bn else 1,
+#                                                    expand_dim=1 if use_bn else 0,
+#                                                    level=level,
+#                                                    DC=DC),
+#                                  requires_grad=False)
+#
+#         nf = self.cheb.shape[0] // ni if use_bn else self.cheb.shape[1]
+#         if use_bn:
+#             self.bn = nn.BatchNorm2d(ni * nf, affine=False)
+#             self.weight = nn.Parameter(
+#                 nn.init.kaiming_normal_(torch.Tensor(no, ni // self.groups * nf, 1, 1), mode='fan_out',
+#                                         nonlinearity='relu'))
+#         else:
+#             self.weight = nn.Parameter(
+#                 nn.init.kaiming_normal_(torch.Tensor(no, ni // self.groups, nf, 1, 1), mode='fan_out',
+#                                         nonlinearity='relu'))
+#         self.bias = nn.Parameter(nn.init.zeros_(torch.Tensor(no))) if bias else None
+#
+#     def forward(self, x):
+#         if not hasattr(self, 'bn'):
+#             filt = torch.sum(self.weight * self.cheb, dim=2)
+#             x = F.conv2d(x, filt, bias=self.bias, stride=self.stride, padding=self.padding, dilation=self.dilation,
+#                          groups=self.groups)
+#             return x
+#         else:
+#             x = F.conv2d(x, self.cheb, stride=self.stride, padding=self.padding, dilation=self.dilation,
+#                          groups=x.size(1))
+#             x = self.bn(x)
+#             x = F.conv2d(x, self.weight, bias=self.bias, padding=0, groups=self.groups)
+#             return x
 
 class DeCheb2d(nn.Module):
 
@@ -230,7 +230,7 @@ class Cheb2d(nn.Module):
         else:
             x = F.conv2d(x, self.cheb, stride=self.stride, padding=self.padding, dilation=self.dilation,
                          groups=x.size(1))
-            x = torch.sign(x)*torch.pow(x, self.alpha)
-            x = self.bn(x)
+            x = torch.sign(x) * torch.pow(torch.abs(x), self.alpha)
+            # x = self.bn(x)
             x = F.conv2d(x, self.weight, bias=self.bias, padding=0, groups=self.groups)
             return x
