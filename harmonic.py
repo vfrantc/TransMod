@@ -230,7 +230,7 @@ class Cheb2d(nn.Module):
         else:
             x = F.conv2d(x, self.cheb, stride=self.stride, padding=self.padding, dilation=self.dilation,
                          groups=x.size(1))
-            x = torch.sign(x) * torch.pow(torch.abs(x), self.alpha)
-            # x = self.bn(x)
+            #x = torch.sign(x) * torch.pow(torch.abs(x), self.alpha)
+            x = self.bn(x)
             x = F.conv2d(x, self.weight, bias=self.bias, padding=0, groups=self.groups)
             return x
