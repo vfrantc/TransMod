@@ -54,7 +54,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # if cud
 
 val_filename = 'input.txt' ## This text file should contain all the names of the images and must be placed in ./data/test/ directory
 val_data_loader = DataLoader(ValData(val_data_dir,val_filename), batch_size=val_batch_size, shuffle=False, num_workers=8)
-
+category = 'natural'
 # --- Define the network --- #
 
 net = Transweather()
