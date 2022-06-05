@@ -4,10 +4,11 @@ import argparse
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from val_data_functions import ValData
-from utils import validation
+from utils import validation, validation_val
 import os
 import numpy as np
 import random
+from transweather_model import Transweather
 
 # --- Parse hyper-parameters  --- #
 parser = argparse.ArgumentParser(description='Hyper-parameters for network')
@@ -30,6 +31,8 @@ elif args.my_model == 4:
 elif args.my_model == 5:
     from transweather_model6 import Transweather
 
+
+
 val_batch_size = args.val_batch_size
 exp_name = args.exp_name
 
@@ -46,30 +49,38 @@ if seed is not None:
 val_data_dir = './data/test/'
 
 # --- Gpu device --- #
-device_ids = [Id for Id in range(torch.cuda.device_count())] # Get all the devices into the cound
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") # if cuda
-
+device_ids = [Id for Id in range(torch.cuda.device_count())]
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(device)
 
 # --- Validation data loader --- #
 
 val_filename = 'input.txt' ## This text file should contain all the names of the images and must be placed in ./data/test/ directory
+
 val_data_loader = DataLoader(ValData(val_data_dir,val_filename), batch_size=val_batch_size, shuffle=False, num_workers=8)
-category = 'natural'
+
 # --- Define the network --- #
 
-net = Transweather()
+net = Transweather().cuda()
+
+
 net = nn.DataParallel(net, device_ids=device_ids)
+
+
 # --- Load the network weight --- #
 net.load_state_dict(torch.load('./{}/best'.format(exp_name)))
 
 # --- Use the evaluation model in testing --- #
 net.eval()
-if os.path.exists('./{}_results/{}/'.format(category,exp_name))==False:
-	os.mkdir('./{}_results/{}/'.format(category,exp_name))
-	os.mkdir('./{}_results/{}/rain/'.format(category,exp_name))
+category = "natural"
+
+if os.path.exists('./results/{}/{}/'.format(category,exp_name))==False:
+	os.makedirs('./results/{}/{}/'.format(category,exp_name))
+
+
 print('--- Testing starts! ---')
 start_time = time.time()
-val_psnr, val_ssim = validation(net, val_data_loader, device, category, exp_name)
+val_psnr, val_ssim = validation_val(net, val_data_loader, device, exp_name,category, save_tag=True)
 end_time = time.time() - start_time
 print('val_psnr: {0:.2f}, val_ssim: {1:.4f}'.format(val_psnr, val_ssim))
 print('validation time is {0:.4f}'.format(end_time))
