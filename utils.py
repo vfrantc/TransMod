@@ -61,7 +61,7 @@ def to_ssim_skimage(pred_image, gt):
     return ssim_list
 
 
-def validation(net, val_data_loader, device, exp_name, save_tag=False):
+def validation(net, val_data_loader, device, exp_name, save_tag=True):
 
     psnr_list = []
     ssim_list = []

@@ -69,7 +69,7 @@ if os.path.exists('./{}_results/{}/'.format(category,exp_name))==False:
 	os.mkdir('./{}_results/{}/rain/'.format(category,exp_name))
 print('--- Testing starts! ---')
 start_time = time.time()
-val_psnr, val_ssim = validation(net, val_data_loader, device, category, exp_name, save_tag=True)
+val_psnr, val_ssim = validation(net, val_data_loader, device, category, exp_name)
 end_time = time.time() - start_time
 print('val_psnr: {0:.2f}, val_ssim: {1:.4f}'.format(val_psnr, val_ssim))
 print('validation time is {0:.4f}'.format(end_time))
