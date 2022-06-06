@@ -990,8 +990,8 @@ class convprojection(nn.Module):
 class LastConvLayer(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride, padding):
         super(LastConvLayer, self).__init__()
-        #self.conv2d = nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding)
-        self.conv2d = Cheb2d(in_channels, out_channels, kernel_size, stride, padding, use_bn=True, alpha=0.95)
+        self.conv2d = nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding)
+        #self.conv2d = Cheb2d(in_channels, out_channels, kernel_size, stride, padding, use_bn=True, alpha=0.95)
 
     def forward(self, x):
         out = self.conv2d(x)
