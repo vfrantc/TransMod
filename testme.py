@@ -15,22 +15,8 @@ parser = argparse.ArgumentParser(description='Hyper-parameters for network')
 parser.add_argument('-val_batch_size', help='Set the validation/test batch size', default=1, type=int)
 parser.add_argument('-exp_name', help='directory for saving the networks of the experiment', type=str)
 parser.add_argument('-seed', help='set random seed', default=19, type=int)
-parser.add_argument('-my_model', help='use original or my model', type=int, default=0)
+parser.add_argument('-set', help='dataset', default='rain', type=str)
 args = parser.parse_args()
-
-if args.my_model == 0:
-    from transweather_model import Transweather
-elif args.my_model == 1:
-    from transweather_model2 import Transweather
-elif args.my_model == 2:
-    from transweather_model3 import Transweather
-elif args.my_model == 3:
-    from transweather_model4 import Transweather
-elif args.my_model == 4:
-    from transweather_model5 import Transweather
-elif args.my_model == 5:
-    from transweather_model6 import Transweather
-
 
 
 val_batch_size = args.val_batch_size
@@ -46,7 +32,7 @@ if seed is not None:
     print('Seed:\t{}'.format(seed))
 
 # --- Set category-specific hyper-parameters  --- #
-val_data_dir = './data/test/'
+val_data_dir = './test/'
 
 # --- Gpu device --- #
 device_ids = [Id for Id in range(torch.cuda.device_count())]
@@ -55,7 +41,7 @@ print(device)
 
 # --- Validation data loader --- #
 
-val_filename = 'input.txt' ## This text file should contain all the names of the images and must be placed in ./data/test/ directory
+val_filename = '{}.txt'.format(set) ## This text file should contain all the names of the images and must be placed in ./data/test/ directory
 
 val_data_loader = DataLoader(ValData(val_data_dir,val_filename), batch_size=val_batch_size, shuffle=False, num_workers=8)
 
@@ -72,7 +58,7 @@ net.load_state_dict(torch.load('./{}/best'.format(exp_name)))
 
 # --- Use the evaluation model in testing --- #
 net.eval()
-category = "natural"
+category = args.set
 
 if os.path.exists('./results/{}/{}/'.format(category,exp_name))==False:
 	os.makedirs('./results/{}/{}/'.format(category,exp_name))
