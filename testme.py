@@ -58,7 +58,7 @@ net.load_state_dict(torch.load('./{}/best'.format(exp_name)))
 
 # --- Use the evaluation model in testing --- #
 net.eval()
-category = args.set
+category = args.sset
 
 if os.path.exists('./results/{}/{}/'.format(category,exp_name))==False:
 	os.makedirs('./results/{}/{}/'.format(category,exp_name))
