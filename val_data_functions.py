@@ -11,7 +11,7 @@ class ValData(data.Dataset):
         with open(val_list) as f:
             contents = f.readlines()
             input_names = [i.strip().replace('./', '') for i in contents]
-            gt_names = [i.strip().replace('input','gt').replace('_rain.png', '_clean.png') for i in input_names]
+            gt_names = [i.strip().replace('input','gt') for i in input_names]
 
         self.input_names = input_names
         self.gt_names = gt_names
@@ -20,8 +20,9 @@ class ValData(data.Dataset):
     def get_images(self, index):
         input_name = self.input_names[index]
         gt_name = self.gt_names[index]
-        input_img = Image.open(self.val_data_dir + input_name)
-        gt_img = Image.open(self.val_data_dir + gt_name)
+        
+        input_img = Image.open(self.val_data_dir + input_name).convert('RGB')
+        gt_img = Image.open(self.val_data_dir + gt_name).convert('RGB')
 
         # Resizing image in the multiple of 16"
         wd_new,ht_new = input_img.size
