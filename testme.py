@@ -41,7 +41,7 @@ print(device)
 
 # --- Validation data loader --- #
 
-val_filename = '{}.txt'.format(set) ## This text file should contain all the names of the images and must be placed in ./data/test/ directory
+val_filename = '{}.txt'.format(args.sset) ## This text file should contain all the names of the images and must be placed in ./data/test/ directory
 
 val_data_loader = DataLoader(ValData(val_data_dir,val_filename), batch_size=val_batch_size, shuffle=False, num_workers=8)
 
