@@ -15,7 +15,7 @@ parser = argparse.ArgumentParser(description='Hyper-parameters for network')
 parser.add_argument('-val_batch_size', help='Set the validation/test batch size', default=1, type=int)
 parser.add_argument('-exp_name', help='directory for saving the networks of the experiment', type=str)
 parser.add_argument('-seed', help='set random seed', default=19, type=int)
-parser.add_argument('-set', help='dataset', default='rain', type=str)
+parser.add_argument('-sset', help='dataset', default='rain', type=str)
 args = parser.parse_args()
 
 
